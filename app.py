@@ -5,14 +5,18 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime, timedelta
 
-# --- PAGE CONFIGURATION ---
+# ==========================================
+# PAGE CONFIGURATION
+# ==========================================
 st.set_page_config(
     page_title="Yaqeen Institute - Executive Analytics",
-    page_icon="🕌",
+    page_icon="🛡️",
     layout="wide"
 )
 
-# --- CUSTOM CSS ---
+# ==========================================
+# CUSTOM CSS
+# ==========================================
 st.markdown("""
     <style>
     .metric-card {
@@ -23,7 +27,7 @@ st.markdown("""
         text-align: center;
     }
     .st-emotion-cache-16txtl3 {
-        padding-top: 2rem; 
+        padding-top: 1rem; 
     }
     </style>
     """, unsafe_allow_html=True)
@@ -35,7 +39,7 @@ st.markdown("""
 def generate_data():
     """Generates a comprehensive mock dataset for Jan 1 2025 - Dec 31 2025."""
     # Settings
-    n_rows = 15000 # Increased rows to make the full year look populated
+    n_rows = 15000 # Robust dataset size
     start_date = datetime(2025, 1, 1)
     end_date = datetime(2025, 12, 31)
     
@@ -74,39 +78,48 @@ def generate_data():
 df_master = generate_data()
 
 # ==========================================
-# 2. SIDEBAR FILTERS
+# 2. SIDEBAR (FILTERS & INFO)
 # ==========================================
-st.sidebar.header("🔍 Filter Dashboard")
+with st.sidebar:
+    st.markdown("### 👨‍💻 About this Project")
+    st.info(
+        "This is a **Technical Prototype** designed for the TPM Case Study.\n\n"
+        "📂 **Source Code:**\n"
+        "[github.com/darefatir/yaqeen-dashboard](https://github.com/darefatir/yaqeen-dashboard)"
+    )
+    st.divider()
 
-# A. Date Filter
-min_date = df_master['date'].min().date()
-max_date = df_master['date'].max().date()
+    st.header("🔍 Filter Dashboard")
 
-start_date, end_date = st.sidebar.date_input(
-    "Select Date Range",
-    [min_date, max_date], # Default to Full Year
-    min_value=min_date,
-    max_value=max_date
-)
+    # A. Date Filter
+    min_date = df_master['date'].min().date()
+    max_date = df_master['date'].max().date()
 
-# B. Region Filter
-region_list = sorted(df_master['region'].unique())
-selected_regions = st.sidebar.multiselect(
-    "Select Region",
-    region_list,
-    default=region_list # Default select all
-)
+    start_date, end_date = st.date_input(
+        "Select Date Range",
+        [min_date, max_date], # Default to Full Year
+        min_value=min_date,
+        max_value=max_date
+    )
 
-# C. Segment Filter
-segment_list = sorted(df_master['segment'].unique())
-selected_segments = st.sidebar.multiselect(
-    "Select Age Segment",
-    segment_list,
-    default=segment_list
-)
+    # B. Region Filter
+    region_list = sorted(df_master['region'].unique())
+    selected_regions = st.multiselect(
+        "Select Region",
+        region_list,
+        default=region_list # Default select all
+    )
 
-st.sidebar.markdown("---")
-st.sidebar.info("💡 **Pro Tip:** Try filtering for *'Gen-Z'* in *'North America'* to see the Institutional Score drop.")
+    # C. Segment Filter
+    segment_list = sorted(df_master['segment'].unique())
+    selected_segments = st.multiselect(
+        "Select Age Segment",
+        segment_list,
+        default=segment_list
+    )
+
+    st.markdown("---")
+    st.caption("💡 **Pro Tip:** Filter for *'Gen-Z'* in *'North America'* to replicate the case study scenario.")
 
 # ==========================================
 # 3. FILTERING LOGIC
@@ -186,6 +199,26 @@ with tab1:
         fig_gauge.update_layout(height=350, margin=dict(l=20, r=20, t=50, b=20))
         st.plotly_chart(fig_gauge, use_container_width=True)
         
+        # EXPLANATION EXPANDER (The "Academic" Touch)
+        with st.expander("ℹ️ How is this score calculated?"):
+            st.markdown("""
+            The **Aggregate Score** represents the holistic spiritual health of the selected segment. 
+            It is calculated as the **mean** of the 5 BASIC dimensions:
+            
+            $$
+            \\text{Score} = \\frac{B + A + S + I + C}{5}
+            $$
+            
+            **Legend:**
+            * **B** = Belief (Key Truths)
+            * **A** = Attitude (Doubts/Conviction)
+            * **S** = Spiritual (Worship Habits)
+            * **I** = Institutional (Community/Masjid)
+            * **C** = Contribution (Service/Dawah)
+            
+            *Note: Future versions may apply weighted regression based on predictive impact.*
+            """)
+
         # Insight based on filter
         if "North America" in selected_regions and "Gen-Z" in selected_segments:
              st.error("⚠️ **Alert:** Gen-Z in North America shows significantly lower 'Institutional' scores.")
